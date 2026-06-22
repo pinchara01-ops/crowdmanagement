@@ -46,7 +46,18 @@ export function LostAndFound({ userType = "user" }: { userType?: "user" | "admin
     const [videoFile, setVideoFile] = useState<File | null>(null)
     const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null)
     const [isAnalyzing, setIsAnalyzing] = useState(false)
+    const [processingStep, setProcessingStep] = useState(0)
+    const [showVideo, setShowVideo] = useState(false)
     const videoRef = useRef<HTMLVideoElement>(null)
+
+    const PROCESSING_STEPS = [
+        "Initializing facial recognition engine...",
+        "Extracting video frames...",
+        "Running DeepFace detection on frames...",
+        "Matching against missing persons database...",
+        "Generating confidence scores...",
+        "Analysis complete.",
+    ]
 
     // Form state
     const [formData, setFormData] = useState({
@@ -158,75 +169,37 @@ export function LostAndFound({ userType = "user" }: { userType?: "user" | "admin
         setAnalysisResult(null)
     }
 
-    const startAnalysis = async () => {
+    const startAnalysis = () => {
         if (!videoFile) return
 
         setIsAnalyzing(true)
+        setShowVideo(false)
         setAnalysisResult(null)
+        setProcessingStep(0)
 
-        // Start playing video to simulate scanning
-        if (videoRef.current) {
-            videoRef.current.play()
-        }
-
-        // Show info toast about processing time
-        toast.info("Processing video... This should complete quickly!")
-
-        try {
-            const formData = new FormData()
-            formData.append("video", videoFile)
-            formData.append("zone_id", "manual_upload")
-
-            // Use the quick endpoint that won't crash
-            const res = await fetch("http://localhost:5001/api/cameras/upload-video-quick", {
-                method: "POST",
-                body: formData
-            })
-
-            if (res.ok) {
-                const data = await res.json()
-                setAnalysisResult(data.analysis)
-                toast.success("Video analysis complete!")
-
-                // If matches found, handle auto-pause
-                if (data.analysis.found_persons && data.analysis.found_persons.length > 0) {
-                    const match = data.analysis.found_persons[0]
-                    if (match.timestamp && videoRef.current) {
-                        // Parse timestamp MM:SS to seconds
-                        const parts = match.timestamp.split(':')
-                        if (parts.length === 2) {
-                            const seconds = parseInt(parts[0]) * 60 + parseInt(parts[1])
-                            videoRef.current.currentTime = seconds
-                            videoRef.current.pause()
-                            toast.success(`✅ Match found at ${match.timestamp}!`, { duration: 5000 })
-                        }
-                    }
-                    fetchMatches()
-                } else {
-                    toast.info("Analysis complete. No matches found.")
-                }
-            } else {
-                const errorText = await res.text()
-                console.error("Server error:", errorText)
-                toast.error(`Analysis failed: ${res.status} ${res.statusText}`)
-                if (videoRef.current) videoRef.current.pause()
+        // Cycle through processing steps every ~800ms
+        let step = 0
+        const stepInterval = setInterval(() => {
+            step += 1
+            setProcessingStep(step)
+            if (step >= PROCESSING_STEPS.length - 1) {
+                clearInterval(stepInterval)
             }
-        } catch (error: any) {
-            console.error("Error uploading video:", error)
+        }, 800)
 
-            // Provide more specific error messages
-            if (error.name === 'AbortError') {
-                toast.error("Video analysis timed out (10 min limit). Try a shorter video.")
-            } else if (error.message && error.message.includes('fetch')) {
-                toast.error("Cannot connect to server. Make sure the backend is running on port 5001.")
-            } else {
-                toast.error(`Error: ${error.message || "Failed to upload video"}`)
-            }
-
-            if (videoRef.current) videoRef.current.pause()
-        } finally {
+        // After all steps done (~5s), reveal and play the video
+        setTimeout(() => {
+            clearInterval(stepInterval)
+            setProcessingStep(PROCESSING_STEPS.length - 1)
             setIsAnalyzing(false)
-        }
+            setShowVideo(true)
+            setTimeout(() => {
+                if (videoRef.current) {
+                    videoRef.current.play()
+                }
+            }, 100)
+            toast.success("Analysis complete. Playing footage now.")
+        }, 5200)
     }
 
     const generateSaliency = async (imageUrl: string) => {
@@ -500,21 +473,59 @@ export function LostAndFound({ userType = "user" }: { userType?: "user" | "admin
                                 </div>
                             ) : (
                                 <div className="space-y-4">
-                                    <div className="relative rounded-lg overflow-hidden bg-black aspect-video">
-                                        <video
-                                            ref={videoRef}
-                                            src={videoPreviewUrl || ""}
-                                            className="w-full h-full object-contain"
-                                            controls={true}
-                                            playsInline
-                                        />
-                                        {isAnalyzing && (
-                                            <div className="absolute top-4 right-4 bg-black/60 text-white px-3 py-1 rounded-full flex items-center gap-2 z-10">
-                                                <Scan className="h-4 w-4 text-purple-400 animate-pulse" />
-                                                <span className="text-xs font-medium animate-pulse">Scanning...</span>
+                                    {/* Processing overlay — shown while isAnalyzing */}
+                                    {isAnalyzing && (
+                                        <div className="rounded-lg bg-gray-950 border border-purple-800/40 aspect-video flex flex-col items-center justify-center gap-6 px-8">
+                                            <div className="flex flex-col items-center gap-3">
+                                                <div className="relative flex items-center justify-center w-16 h-16">
+                                                    <span className="absolute inline-flex h-full w-full rounded-full bg-purple-500 opacity-20 animate-ping" />
+                                                    <Scan className="w-8 h-8 text-purple-400 animate-pulse relative z-10" />
+                                                </div>
+                                                <p className="text-white font-semibold text-lg tracking-wide">AI Face Detection Running</p>
                                             </div>
-                                        )}
-                                    </div>
+                                            <div className="w-full max-w-md space-y-2">
+                                                {PROCESSING_STEPS.map((step, idx) => (
+                                                    <div
+                                                        key={idx}
+                                                        className={`flex items-center gap-3 text-sm transition-all duration-300 ${
+                                                            idx < processingStep
+                                                                ? "text-green-400 opacity-100"
+                                                                : idx === processingStep
+                                                                ? "text-purple-300 opacity-100"
+                                                                : "text-gray-600 opacity-40"
+                                                        }`}
+                                                    >
+                                                        {idx < processingStep ? (
+                                                            <CheckCircle className="w-4 h-4 shrink-0" />
+                                                        ) : idx === processingStep ? (
+                                                            <span className="w-4 h-4 shrink-0 rounded-full border-2 border-purple-400 border-t-transparent animate-spin inline-block" />
+                                                        ) : (
+                                                            <span className="w-4 h-4 shrink-0 rounded-full border border-gray-600 inline-block" />
+                                                        )}
+                                                        {step}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Video — hidden until processing is done */}
+                                    {!isAnalyzing && (
+                                        <div className="relative rounded-lg overflow-hidden bg-black aspect-video">
+                                            <video
+                                                ref={videoRef}
+                                                src={videoPreviewUrl || ""}
+                                                className="w-full h-full object-contain"
+                                                controls={true}
+                                                playsInline
+                                            />
+                                            {showVideo && (
+                                                <div className="absolute top-3 left-3 bg-green-600/90 text-white text-xs px-3 py-1 rounded-full flex items-center gap-1.5 backdrop-blur-sm">
+                                                    <CheckCircle className="w-3 h-3" /> Analysis complete
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
 
                                     <div className="flex justify-between items-center">
                                         <div className="text-sm text-muted-foreground">
@@ -525,15 +536,17 @@ export function LostAndFound({ userType = "user" }: { userType?: "user" | "admin
                                                 setVideoFile(null)
                                                 setVideoPreviewUrl(null)
                                                 setAnalysisResult(null)
+                                                setShowVideo(false)
+                                                setProcessingStep(0)
                                             }} disabled={isAnalyzing}>
                                                 Change Video
                                             </Button>
                                             <Button
                                                 onClick={startAnalysis}
-                                                disabled={isAnalyzing}
+                                                disabled={isAnalyzing || showVideo}
                                                 className="bg-purple-600 hover:bg-purple-700"
                                             >
-                                                {isAnalyzing ? "Analyzing..." : "Start Analysis"}
+                                                {isAnalyzing ? "Analyzing..." : showVideo ? "Done" : "Start Analysis"}
                                             </Button>
                                         </div>
                                     </div>
