@@ -87,17 +87,20 @@ def process_video_forecast(video_path, zone_id, weights_path, upload_folder, pre
     
     # 1. Setup Model
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if device.type == "cuda":
+        import torch.backends.cudnn as cudnn
+        cudnn.benchmark = True
     print(f"Initializing AI Engine on {device}...")
-    
+
     model = CSRNet()
-    checkpoint = torch.load(weights_path, map_location='cpu', weights_only=False)
+    checkpoint = torch.load(weights_path, map_location=device, weights_only=False)
     if 'state_dict' in checkpoint:
         state_dict = checkpoint['state_dict']
     elif 'model_state_dict' in checkpoint:
         state_dict = checkpoint['model_state_dict']
     else:
         state_dict = checkpoint
-    
+
     new_state_dict = OrderedDict()
     for k, v in state_dict.items():
         name = k.replace('module.', '')
@@ -113,7 +116,7 @@ def process_video_forecast(video_path, zone_id, weights_path, upload_folder, pre
         print("Failed to read video.")
         cap.release()
         return None
-    
+
     # Get total frames for progress tracking
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     if total_frames <= 0:
@@ -208,156 +211,6 @@ def process_video_forecast(video_path, zone_id, weights_path, upload_folder, pre
         
         if frame_count % 10 == 0:
             print(f"  Processed frame {frame_count}/{total_frames}...")
-
-        # Update previous frame
-        prvs = next_gray
-        frame_count += 1
-
-    cap.release()
-    out.release()
-    
-    # Calculate statistics
-    avg_count = int(np.mean(crowd_counts)) if crowd_counts else 0
-    peak_count = int(np.max(crowd_counts)) if crowd_counts else 0
-    
-    if avg_count < 30:
-        density_level = "Low"
-    elif avg_count < 60:
-        density_level = "Medium"
-    else:
-        density_level = "High"
-    
-    elapsed = time.time() - start_time
-    print(f"Video saved successfully as '{output_filename}'")
-    print(f"\n✅ Forecast complete in {elapsed:.1f}s")
-    print(f"   Avg: {avg_count}, Peak: {peak_count}, Level: {density_level}")
-    
-    return {
-        "zone_id": zone_id,
-        "crowd_count": avg_count,
-        "peak_count": peak_count,
-        "density_level": density_level,
-        "frames_processed": frame_count,
-        "processing_time": f"{elapsed:.1f}s",
-        "forecast_video_url": f"/uploads/forecasts/{zone_id}/{output_filename}",
-        "prediction_minutes": prediction_minutes,
-        "description": f"Processed {frame_count} frames. Avg crowd: {avg_count}, Peak: {peak_count}. Density: {density_level}",
-        "timestamp": datetime.datetime.utcnow().isoformat() + "Z"
-    }
-
-    """
-    EXACT same logic as try.py - fast frame-by-frame processing
-    """
-    import time
-    start_time = time.time()
-    
-    print(f"\n{'='*60}")
-    print(f"CSRNet Forecast: {zone_id}")
-    print(f"{'='*60}\n")
-    
-    PREDICTION_INTENSITY = prediction_minutes
-    
-    # 1. Setup Model
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Initializing AI Engine on {device}...")
-    
-    model = CSRNet()
-    checkpoint = torch.load(weights_path, map_location='cpu', weights_only=False)
-    if 'state_dict' in checkpoint:
-        state_dict = checkpoint['state_dict']
-    elif 'model_state_dict' in checkpoint:
-        state_dict = checkpoint['model_state_dict']
-    else:
-        state_dict = checkpoint
-    
-    new_state_dict = OrderedDict()
-    for k, v in state_dict.items():
-        name = k.replace('module.', '')
-        new_state_dict[name] = v
-    model.load_state_dict(new_state_dict)
-    model.to(device)
-    model.eval()
-
-    # 2. Setup Video Input
-    cap = cv2.VideoCapture(video_path)
-    ret, frame1 = cap.read()
-    if not ret:
-        print("Failed to read video.")
-        cap.release()
-        return None
-        
-    prvs = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
-    
-    # Pre-processing transform
-    transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    ])
-
-    # 3. Setup output video (headless mode - always save to file)
-    forecast_dir = os.path.join(upload_folder, "forecasts", zone_id)
-    os.makedirs(forecast_dir, exist_ok=True)
-    
-    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_filename = f"{zone_id}_{timestamp}_forecast.avi"
-    output_path = os.path.join(forecast_dir, output_filename)
-    
-    fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    out = cv2.VideoWriter(output_path, fourcc, 20.0, (1200, 450))
-    print(f"Processing... output will be saved to '{output_filename}'")
-
-    print("Starting Analysis...")
-
-    frame_count = 0
-    crowd_counts = []
-    
-    while(1):
-        ret, frame2 = cap.read()
-        if not ret: break
-
-        # A. Calculate Optical Flow (Crowd Motion)
-        next_gray = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
-        flow = cv2.calcOpticalFlowFarneback(prvs, next_gray, None, 0.5, 3, 15, 3, 5, 1.2, 0)
-
-        # B. Run CSRNet (Current Density)
-        img_pil = Image.fromarray(cv2.cvtColor(frame2, cv2.COLOR_BGR2RGB))
-        input_tensor = transform(img_pil).unsqueeze(0).to(device)
-        
-        with torch.no_grad():
-            output = model(input_tensor)
-        
-        density_map = output.cpu().squeeze().numpy()
-        current_count = density_map.sum()
-        crowd_counts.append(current_count)
-        
-        # Resize density map to match video frame size
-        density_resized = cv2.resize(density_map, (frame2.shape[1], frame2.shape[0]), interpolation=cv2.INTER_CUBIC)
-        
-        # C. Predict Future Density (The Integration)
-        # Warp the density map using the flow vectors
-        future_density = predict_future_density(density_resized, flow, time_horizon_frames=PREDICTION_INTENSITY * 5)
-        
-        # D. Visualization
-        def normalize_for_vis(d_map):
-            if d_map.max() == 0:
-                return np.zeros_like(d_map, dtype=np.uint8)
-            norm = (d_map - d_map.min()) / (d_map.max() - d_map.min() + 1e-8)
-            return (norm * 255).astype(np.uint8)
-
-        vis_current = cv2.applyColorMap(normalize_for_vis(density_resized), cv2.COLORMAP_JET)
-        vis_future  = cv2.applyColorMap(normalize_for_vis(future_density), cv2.COLORMAP_JET)
-
-        # Add Text Explanations
-        cv2.putText(vis_current, f"Live Density: {int(current_count)}", (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-        cv2.putText(vis_future, f"Prediction ({PREDICTION_INTENSITY}m)", (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-
-        # Combine: Left = Current, Right = Prediction
-        combined = np.hstack((vis_current, vis_future))
-        combined = cv2.resize(combined, (1200, 450)) # Resize for easier viewing
-        
-        out.write(combined)
-        if frame_count % 10 == 0:
-            print(f"  Processed frame {frame_count}...")
 
         # Update previous frame
         prvs = next_gray

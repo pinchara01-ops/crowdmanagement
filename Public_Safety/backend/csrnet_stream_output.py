@@ -68,16 +68,19 @@ def predict_future_density(current_density, flow, time_horizon_frames):
 # ==========================================
 print("Loading CSRNet Model...")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+if device.type == "cuda":
+    import torch.backends.cudnn as cudnn
+    cudnn.benchmark = True
 model = None
 transform = None
 
 try:
     # Absolute path to weights in root
     WEIGHTS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'weights.pth'))
-    
+
     if os.path.exists(WEIGHTS_PATH):
         model = CSRNet()
-        checkpoint = torch.load(WEIGHTS_PATH, map_location='cpu', weights_only=False)
+        checkpoint = torch.load(WEIGHTS_PATH, map_location=device, weights_only=False)
         if 'state_dict' in checkpoint:
             state_dict = checkpoint['state_dict']
         elif 'model_state_dict' in checkpoint:
