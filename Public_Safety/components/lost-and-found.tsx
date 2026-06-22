@@ -48,6 +48,7 @@ export function LostAndFound({ userType = "user" }: { userType?: "user" | "admin
     const [isAnalyzing, setIsAnalyzing] = useState(false)
     const [processingStep, setProcessingStep] = useState(0)
     const [showVideo, setShowVideo] = useState(false)
+    const [resultVideoUrl, setResultVideoUrl] = useState<string | null>(null)
     const videoRef = useRef<HTMLVideoElement>(null)
 
     const PROCESSING_STEPS = [
@@ -187,17 +188,19 @@ export function LostAndFound({ userType = "user" }: { userType?: "user" | "admin
             }
         }, 800)
 
-        // After all steps done (~5s), reveal and play the video
+        // After all steps done (~5s), reveal and play the result video
         setTimeout(() => {
             clearInterval(stepInterval)
             setProcessingStep(PROCESSING_STEPS.length - 1)
             setIsAnalyzing(false)
+            setResultVideoUrl("/detection_result.mp4")
             setShowVideo(true)
             setTimeout(() => {
                 if (videoRef.current) {
+                    videoRef.current.load()
                     videoRef.current.play()
                 }
-            }, 100)
+            }, 150)
             toast.success("Analysis complete. Playing footage now.")
         }, 5200)
     }
@@ -509,12 +512,12 @@ export function LostAndFound({ userType = "user" }: { userType?: "user" | "admin
                                         </div>
                                     )}
 
-                                    {/* Video — hidden until processing is done */}
+                                    {/* Video — hidden until processing is done, then shows result footage */}
                                     {!isAnalyzing && (
                                         <div className="relative rounded-lg overflow-hidden bg-black aspect-video">
                                             <video
                                                 ref={videoRef}
-                                                src={videoPreviewUrl || ""}
+                                                src={resultVideoUrl || videoPreviewUrl || ""}
                                                 className="w-full h-full object-contain"
                                                 controls={true}
                                                 playsInline
@@ -538,6 +541,7 @@ export function LostAndFound({ userType = "user" }: { userType?: "user" | "admin
                                                 setAnalysisResult(null)
                                                 setShowVideo(false)
                                                 setProcessingStep(0)
+                                                setResultVideoUrl(null)
                                             }} disabled={isAnalyzing}>
                                                 Change Video
                                             </Button>
