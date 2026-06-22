@@ -27,12 +27,15 @@ const EventRegistrationMap = dynamic(
 
 export default function LandingPage() {
   const router = useRouter()
+  const [dialogOpen, setDialogOpen] = useState(false)
 
   const handleEventCreated = (eventData: any) => {
-    console.log("Event created:", eventData)
+    setDialogOpen(false)
     toast.success("Event registered successfully!", {
-      description: "You can now select this event when logging in."
+      description: `"${eventData.event_id ? eventData.event_id.replace('evt_', '') : 'Your event'}" is ready. Redirecting to login...`,
+      duration: 3000,
     })
+    setTimeout(() => router.push("/auth/login"), 2000)
   }
 
   return (
@@ -55,7 +58,7 @@ export default function LandingPage() {
               dashboards for comprehensive event safety management.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Dialog>
+              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogTrigger asChild>
                   <Button size="lg" className="text-lg px-8 py-6">
                     Register Your Event

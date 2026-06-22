@@ -37,3 +37,14 @@ gemini_key.txt
 uploads/
 
 backend/venv/
+
+# model weights (too large for git — download separately)
+*.pth
+*.pt
+*.ckpt
+*.h5
+
+# logs
+*.log
+backend/backend.log
+backend/backend_err.log

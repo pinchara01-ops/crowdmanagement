@@ -91,7 +91,12 @@ def process_video_forecast(video_path, zone_id, weights_path, upload_folder, pre
     
     model = CSRNet()
     checkpoint = torch.load(weights_path, map_location='cpu', weights_only=False)
-    state_dict = checkpoint['state_dict'] if 'state_dict' in checkpoint else checkpoint
+    if 'state_dict' in checkpoint:
+        state_dict = checkpoint['state_dict']
+    elif 'model_state_dict' in checkpoint:
+        state_dict = checkpoint['model_state_dict']
+    else:
+        state_dict = checkpoint
     
     new_state_dict = OrderedDict()
     for k, v in state_dict.items():
@@ -258,7 +263,12 @@ def process_video_forecast(video_path, zone_id, weights_path, upload_folder, pre
     
     model = CSRNet()
     checkpoint = torch.load(weights_path, map_location='cpu', weights_only=False)
-    state_dict = checkpoint['state_dict'] if 'state_dict' in checkpoint else checkpoint
+    if 'state_dict' in checkpoint:
+        state_dict = checkpoint['state_dict']
+    elif 'model_state_dict' in checkpoint:
+        state_dict = checkpoint['model_state_dict']
+    else:
+        state_dict = checkpoint
     
     new_state_dict = OrderedDict()
     for k, v in state_dict.items():

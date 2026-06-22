@@ -164,7 +164,7 @@ export default function AdminDashboard() {
     const fetchResponders = async () => {
       setIsLoadingResponders(true)
       try {
-        const response = await fetch('http://localhost:5000/api/responders')
+        const response = await fetch('http://localhost:5001/api/responders')
         if (response.ok) {
           const data = await response.json()
           setResponders(data)
@@ -201,7 +201,7 @@ export default function AdminDashboard() {
     toast.info(`Initiating call to ${responderName}...`)
 
     try {
-      const response = await fetch('http://localhost:5000/api/call', {
+      const response = await fetch('http://localhost:5001/api/call', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -243,7 +243,7 @@ export default function AdminDashboard() {
     // Fetch Gemini Analysis
     try {
       const zoneId = zoneName.toLowerCase().replace(/ /g, '_')
-      const res = await fetch(`http://localhost:5000/api/zones/${zoneId}/density`, { method: 'POST' })
+      const res = await fetch(`http://localhost:5001/api/zones/${zoneId}/density`, { method: 'POST' })
       if (res.ok) {
         const data = await res.json()
         setZoneAnalysis(data)

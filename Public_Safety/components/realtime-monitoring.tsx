@@ -55,7 +55,7 @@ export function RealtimeMonitoring() {
 
     const fetchAllZonesData = async () => {
         try {
-            const response = await fetch("http://localhost:5000/api/realtime/all-zones")
+            const response = await fetch("http://localhost:5001/api/realtime/all-zones")
             if (response.ok) {
                 const data = await response.json()
                 setZonesData(data.zones)
@@ -69,7 +69,7 @@ export function RealtimeMonitoring() {
 
     const fetchZoneHistory = async (zoneId: string) => {
         try {
-            const response = await fetch(`http://localhost:5000/api/realtime/zone-history/${zoneId}`)
+            const response = await fetch(`http://localhost:5001/api/realtime/zone-history/${zoneId}`)
             if (response.ok) {
                 const data = await response.json()
                 setZoneHistory(data.history || [])
@@ -81,7 +81,7 @@ export function RealtimeMonitoring() {
 
     const fetchDashboardSummary = async () => {
         try {
-            const response = await fetch("http://localhost:5000/api/realtime/dashboard-summary")
+            const response = await fetch("http://localhost:5001/api/realtime/dashboard-summary")
             if (response.ok) {
                 const data = await response.json()
                 setDashboardSummary(data)

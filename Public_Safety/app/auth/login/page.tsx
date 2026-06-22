@@ -22,14 +22,14 @@ export default function LoginPage() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/events')
+        const res = await fetch('http://localhost:5001/api/events')
         if (res.ok) {
           const data = await res.json()
           setEvents(data)
         }
       } catch (error) {
         console.error("Failed to fetch events", error)
-        toast.error("Failed to load events")
+        toast.error("Could not load events. Make sure the Flask backend is running on port 5001.")
       }
     }
     fetchEvents()
@@ -47,7 +47,7 @@ export default function LoginPage() {
   const handleEventLogin = async () => {
     if (selectedEvent) {
       try {
-        const res = await fetch('http://localhost:5000/api/events/select', {
+        const res = await fetch('http://localhost:5001/api/events/select', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ event_id: selectedEvent })

@@ -33,7 +33,7 @@ export function AIAnomalyDetection({ context = "user" }: AIAnomalyDetectionProps
 
   const fetchAnomalies = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/anomalies/active')
+      const res = await fetch('http://localhost:5001/api/anomalies/active')
       if (res.ok) {
         const data = await res.json()
         const formatted = data.map((a: any) => ({

@@ -114,7 +114,7 @@ export default function EventRegistrationMap({ onEventCreated }: EventRegistrati
 
         setIsSubmitting(true)
         try {
-            const response = await fetch('http://localhost:5000/api/events/preview-zones', {
+            const response = await fetch('http://localhost:5001/api/events/preview-zones', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -133,7 +133,7 @@ export default function EventRegistrationMap({ onEventCreated }: EventRegistrati
             }
         } catch (error) {
             console.error("Error previewing zones:", error)
-            toast.error("Network error.")
+            toast.error("Cannot reach backend. Make sure the Flask server is running on port 5001.")
         } finally {
             setIsSubmitting(false)
         }
@@ -154,7 +154,7 @@ export default function EventRegistrationMap({ onEventCreated }: EventRegistrati
     const handleFinalSubmit = async () => {
         setIsSubmitting(true)
         try {
-            const response = await fetch('http://localhost:5000/api/events/create', {
+            const response = await fetch('http://localhost:5001/api/events/create', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -174,7 +174,7 @@ export default function EventRegistrationMap({ onEventCreated }: EventRegistrati
             }
         } catch (error) {
             console.error("Error creating event:", error)
-            toast.error("Network error.")
+            toast.error("Cannot reach backend. Make sure the Flask server is running on port 5001.")
         } finally {
             setIsSubmitting(false)
         }

@@ -60,7 +60,7 @@ export function LostAndFound({ userType = "user" }: { userType?: "user" | "admin
 
     const fetchReports = async () => {
         try {
-            const res = await fetch("http://localhost:5000/api/lost-found/reports")
+            const res = await fetch("http://localhost:5001/api/lost-found/reports")
             if (res.ok) {
                 const data = await res.json()
                 setReports(data.reports)
@@ -72,7 +72,7 @@ export function LostAndFound({ userType = "user" }: { userType?: "user" | "admin
 
     const fetchMatches = async () => {
         try {
-            const res = await fetch("http://localhost:5000/api/lost-found/matches")
+            const res = await fetch("http://localhost:5001/api/lost-found/matches")
             if (res.ok) {
                 const data = await res.json()
                 setMatches(data.matches)
@@ -121,7 +121,7 @@ export function LostAndFound({ userType = "user" }: { userType?: "user" | "admin
                 data.append("image", formData.image)
             }
 
-            const res = await fetch("http://localhost:5000/api/lost-found/report", {
+            const res = await fetch("http://localhost:5001/api/lost-found/report", {
                 method: "POST",
                 body: data
             })
@@ -178,7 +178,7 @@ export function LostAndFound({ userType = "user" }: { userType?: "user" | "admin
             formData.append("zone_id", "manual_upload")
 
             // Use the quick endpoint that won't crash
-            const res = await fetch("http://localhost:5000/api/cameras/upload-video-quick", {
+            const res = await fetch("http://localhost:5001/api/cameras/upload-video-quick", {
                 method: "POST",
                 body: formData
             })
@@ -218,7 +218,7 @@ export function LostAndFound({ userType = "user" }: { userType?: "user" | "admin
             if (error.name === 'AbortError') {
                 toast.error("Video analysis timed out (10 min limit). Try a shorter video.")
             } else if (error.message && error.message.includes('fetch')) {
-                toast.error("Cannot connect to server. Make sure the backend is running on port 5000.")
+                toast.error("Cannot connect to server. Make sure the backend is running on port 5001.")
             } else {
                 toast.error(`Error: ${error.message || "Failed to upload video"}`)
             }
@@ -232,7 +232,7 @@ export function LostAndFound({ userType = "user" }: { userType?: "user" | "admin
     const generateSaliency = async (imageUrl: string) => {
         toast.info("Generating Saliency Map...")
         try {
-            const res = await fetch("http://localhost:5000/api/explain/saliency", {
+            const res = await fetch("http://localhost:5001/api/explain/saliency", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ image_url: imageUrl })
@@ -240,7 +240,7 @@ export function LostAndFound({ userType = "user" }: { userType?: "user" | "admin
 
             if (res.ok) {
                 const data = await res.json()
-                window.open(`http://localhost:5000${data.explanation_url}`, '_blank')
+                window.open(`http://localhost:5001${data.explanation_url}`, '_blank')
                 toast.success("Saliency Map Generated!")
             } else {
                 toast.error("Failed to generate saliency map")
@@ -429,7 +429,7 @@ export function LostAndFound({ userType = "user" }: { userType?: "user" | "admin
                                         <div className="h-24 w-24 bg-slate-100 rounded-lg flex items-center justify-center overflow-hidden">
                                             {report.image_url ? (
                                                 <img
-                                                    src={`http://localhost:5000${report.image_url}`}
+                                                    src={`http://localhost:5001${report.image_url}`}
                                                     alt={report.name}
                                                     className="h-full w-full object-cover"
                                                 />
@@ -579,10 +579,10 @@ export function LostAndFound({ userType = "user" }: { userType?: "user" | "admin
                                             <Card key={idx} className="border-green-200 bg-green-50">
                                                 <CardContent className="p-4">
                                                     <div className="flex gap-4">
-                                                        <div className="h-48 w-64 bg-black rounded-lg overflow-hidden relative group cursor-pointer" onClick={() => window.open(`http://localhost:5000${match.found_frame_url}`, '_blank')}>
+                                                        <div className="h-48 w-64 bg-black rounded-lg overflow-hidden relative group cursor-pointer" onClick={() => window.open(`http://localhost:5001${match.found_frame_url}`, '_blank')}>
                                                             {match.found_frame_url ? (
                                                                 <img
-                                                                    src={`http://localhost:5000${match.found_frame_url}`}
+                                                                    src={`http://localhost:5001${match.found_frame_url}`}
                                                                     alt="Found Frame"
                                                                     className="h-full w-full object-cover transition-transform group-hover:scale-105"
                                                                 />

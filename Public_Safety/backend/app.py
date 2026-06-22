@@ -5,7 +5,7 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 from flask import Flask, request, jsonify, send_from_directory, Response, send_file
 from csrnet_stream_output import generate_crowd_stream
 from flask_cors import CORS
-from twilio.rest import Client
+import requests as http_requests
 from flasgger import Swagger, swag_from
 import os
 from werkzeug.utils import secure_filename
@@ -73,38 +73,18 @@ UPLOAD_LOCK = threading.Lock()
 LOST_PERSONS = []
 FOUND_MATCHES = []
 
-# Gemini API Key Management
-GEMINI_KEYS = [
-    "AIzaSyDf85wdvRbpfi1BV9bO6iOSA962NDTpR78",  # Working key
-]
+# Gemini API Key Management — loaded from .env only
+_env_gemini_key = os.getenv("GEMINI_API_KEY", "")
+GEMINI_KEYS = [_env_gemini_key] if _env_gemini_key else []
 CURRENT_KEY_INDEX = 0
 
 def get_gemini_key():
-    """
-    Get the next available Gemini API key from the pool.
-    Rotates through keys to distribute load.
-    """
+    """Return Gemini API key from environment. Rotates if multiple keys provided (comma-separated)."""
     global CURRENT_KEY_INDEX, GEMINI_KEYS
-    
-    # Try to load more keys from env or file if not already loaded
-    if len(GEMINI_KEYS) == 1:
-        env_key = os.getenv("GEMINI_API_KEY")
-        if env_key and env_key not in GEMINI_KEYS:
-            GEMINI_KEYS.append(env_key)
-            
-        key_files = ["gemini_key.txt", "../gemini_key.txt", "backend/gemini_key.txt"]
-        for kf in key_files:
-            if os.path.exists(kf):
-                try:
-                    with open(kf, "r") as f:
-                        file_key = f.read().strip()
-                    if file_key and "PASTE" not in file_key and file_key not in GEMINI_KEYS:
-                        GEMINI_KEYS.append(file_key)
-                except:
-                    pass
-    
-    # Round-robin selection
-    key = GEMINI_KEYS[CURRENT_KEY_INDEX]
+    if not GEMINI_KEYS:
+        print("WARNING: GEMINI_API_KEY not set in .env — Gemini features will not work.")
+        return None
+    key = GEMINI_KEYS[CURRENT_KEY_INDEX % len(GEMINI_KEYS)]
     CURRENT_KEY_INDEX = (CURRENT_KEY_INDEX + 1) % len(GEMINI_KEYS)
     return key
 
@@ -164,7 +144,7 @@ swagger_template = {
         "description": "Crowd Management Platform API - Upload videos, detect anomalies, and manage responders",
         "version": "1.0.0"
     },
-    "host": "localhost:5000",
+    "host": "localhost:5001",
     "basePath": "/",
     "schemes": ["http"],
 }
@@ -186,16 +166,27 @@ FACES_FOLDER = os.path.join(UPLOAD_FOLDER, 'faces')
 if not os.path.exists(FACES_FOLDER):
     os.makedirs(FACES_FOLDER)
 
-# Twilio Configuration
-TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID')
-TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN')
-TWILIO_PHONE_NUMBER = os.getenv('TWILIO_PHONE_NUMBER', '+15005550006')
+# Telegram Bot Configuration (free replacement for Twilio SMS)
+TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '')
+TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID', '')
 
-try:
-    twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
-except Exception as e:
-    print(f"Warning: Twilio client failed to initialize: {e}")
-    twilio_client = None
+def _send_telegram(text):
+    """Send a message via Telegram Bot API. Returns True on success."""
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        print(f"[Telegram] Not configured. Message: {text}")
+        return False
+    try:
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+        resp = http_requests.post(url, json={"chat_id": TELEGRAM_CHAT_ID, "text": text, "parse_mode": "HTML"}, timeout=5)
+        if resp.status_code == 200:
+            print(f"[Telegram] Message sent.")
+            return True
+        else:
+            print(f"[Telegram] Failed: {resp.text}")
+            return False
+    except Exception as e:
+        print(f"[Telegram] Error: {e}")
+        return False
 
 # Mock Data
 RESPONDERS = [
@@ -204,6 +195,31 @@ RESPONDERS = [
     {"id": 3, "name": "Captain Lisa Wong", "type": "Fire", "status": "available", "zone": "Backstage", "incidents": 0, "phone": "+917337743545"},
     {"id": 4, "name": "Tech Lead Alex Kim", "type": "Technical", "status": "active", "zone": "Control Room", "incidents": 1, "phone": "+917337743545"},
 ]
+
+EVENTS_FILE = os.path.join(os.path.dirname(__file__), 'events_data.json')
+
+def save_events():
+    try:
+        with open(EVENTS_FILE, 'w') as f:
+            json.dump(EVENTS, f, indent=2)
+    except Exception as e:
+        print(f"Warning: Could not save events: {e}")
+
+def load_saved_events():
+    global EVENTS
+    if os.path.exists(EVENTS_FILE):
+        try:
+            with open(EVENTS_FILE, 'r') as f:
+                saved = json.load(f)
+                # Merge: keep defaults, add any extra saved events
+                saved_ids = {e['id'] for e in saved}
+                default_ids = {e['id'] for e in EVENTS}
+                for e in saved:
+                    if e['id'] not in default_ids:
+                        EVENTS.append(e)
+                print(f"Loaded {len(saved)} saved events")
+        except Exception as e:
+            print(f"Warning: Could not load saved events: {e}")
 
 EVENTS = [
     {
@@ -302,19 +318,8 @@ VENUE_COORDINATES = {
 
 # --- Helper Functions ---
 def send_sms_alert(to_number, message):
-    try:
-        if twilio_client:
-            print(f"Sending SMS to {to_number}: {message}")
-            # message = twilio_client.messages.create(
-            #     body=message,
-            #     from_=TWILIO_PHONE_NUMBER,
-            #     to=to_number
-            # )
-            return True
-    except Exception as e:
-        print(f"Failed to send SMS: {str(e)}") 
-        return False
-    return False
+    """Send alert via Telegram (free replacement for Twilio SMS)."""
+    return _send_telegram(message)
 
 def calculate_shortest_path(start, end, avoid_zones=[]):
     # Dijkstra's Algorithm
@@ -416,7 +421,7 @@ def call_responder():
         print(f"Initiating call to {responder['name']} ({to_number})...")
         return jsonify({"message": f"Initiating call to {responder['name']} ({to_number})... (Mock)", "status": "success"})
     except Exception as e:
-        print(f"Twilio Error: {str(e)}")
+        print(f"Call error: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 
@@ -662,68 +667,25 @@ def divide_zones():
     })
 
 def send_anomaly_alert(zone_id, anomaly_type, description):
-    """Send SMS alert to responders assigned to the zone"""
-    if not twilio_client:
-        print("Twilio client not initialized. Skipping SMS.")
-        return
-
-    # Find responders for this zone
+    """Send anomaly alert to responders via Telegram."""
     zone_name = CAMERA_ENDPOINTS.get(zone_id, {}).get('name', zone_id)
     responders = [r for r in RESPONDERS if r['zone'].lower() in zone_name.lower() or r['zone'] == 'Control Room']
-    
     if not responders:
-        # Fallback to all responders if no specific zone match
         responders = RESPONDERS
 
-    message_body = f"🚨 CRITICAL ALERT: {anomaly_type} detected in {zone_name}. {description}. Please respond immediately."
-
-    for responder in responders:
-        try:
-            message = twilio_client.messages.create(
-                body=message_body,
-                from_=TWILIO_PHONE_NUMBER,
-                to=responder['phone']
-            )
-            print(f"SMS sent to {responder['name']}: {message.sid}")
-        except Exception as e:
-            print(f"Failed to send SMS to {responder['name']}: {e}")
+    message_body = (
+        f"<b>🚨 CRITICAL ALERT</b>\n"
+        f"Type: {anomaly_type}\n"
+        f"Zone: {zone_name}\n"
+        f"Detail: {description}\n"
+        f"Assigned responders: {', '.join(r['name'] for r in responders)}\n"
+        f"Please respond immediately."
+    )
+    _send_telegram(message_body)
 
 
 
-# Gemini API Key Management
-GEMINI_KEYS = [
-    "AIzaSyCNO8wZhRmBCKLaLxNGY3XrFxvVUWg-5Fw",  # User provided key
-]
-CURRENT_KEY_INDEX = 0
-
-def get_gemini_key():
-    """
-    Get the next available Gemini API key from the pool.
-    Rotates through keys to distribute load.
-    """
-    global CURRENT_KEY_INDEX, GEMINI_KEYS
-    
-    # Try to load more keys from env or file if not already loaded
-    if len(GEMINI_KEYS) == 1:
-        env_key = os.getenv("GEMINI_API_KEY")
-        if env_key and env_key not in GEMINI_KEYS:
-            GEMINI_KEYS.append(env_key)
-            
-        key_files = ["gemini_key.txt", "../gemini_key.txt", "backend/gemini_key.txt"]
-        for kf in key_files:
-            if os.path.exists(kf):
-                try:
-                    with open(kf, "r") as f:
-                        file_key = f.read().strip()
-                    if file_key and "PASTE" not in file_key and file_key not in GEMINI_KEYS:
-                        GEMINI_KEYS.append(file_key)
-                except:
-                    pass
-    
-    # Round-robin selection
-    key = GEMINI_KEYS[CURRENT_KEY_INDEX]
-    CURRENT_KEY_INDEX = (CURRENT_KEY_INDEX + 1) % len(GEMINI_KEYS)
-    return key
+# (get_gemini_key defined above — duplicate removed)
 
 def extract_frame_at_timestamp(video_path, timestamp_str):
     """Extracts a frame from the video at the given timestamp (MM:SS)"""
@@ -3748,8 +3710,11 @@ def get_xai_dashboard():
 if __name__ == '__main__':
 
     check_supabase_connection()
-    
+
+    # Load any previously saved events
+    load_saved_events()
+
     # Initialize 8th Mile event data
     initialize_8th_mile_event()
     
-    app.run(debug=True, port=5000, threaded=True)
+    app.run(debug=True, port=5001, threaded=True, use_reloader=False)

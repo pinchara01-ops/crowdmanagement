@@ -74,7 +74,7 @@ export default function UserDashboard() {
         const fetchData = async () => {
             try {
                 // Fetch zones
-                const resZones = await fetch('http://localhost:5000/api/realtime/all-zones')
+                const resZones = await fetch('http://localhost:5001/api/realtime/all-zones')
                 if (resZones.ok) {
                     const data = await resZones.json()
 
@@ -93,7 +93,7 @@ export default function UserDashboard() {
                     // Fetch predictions
                     for (const zone of formattedZones) {
                         try {
-                            const resPred = await fetch(`http://localhost:5000/api/crowd/prediction/${zone.id}`)
+                            const resPred = await fetch(`http://localhost:5001/api/crowd/prediction/${zone.id}`)
                             if (resPred.ok) {
                                 const predData = await resPred.json()
                                 zone.prediction = predData.predicted_count_15min
@@ -149,7 +149,7 @@ export default function UserDashboard() {
                 }
 
                 // Fetch alerts
-                const resAlerts = await fetch('http://localhost:5000/api/anomalies/active')
+                const resAlerts = await fetch('http://localhost:5001/api/anomalies/active')
                 if (resAlerts.ok) {
                     const data = await resAlerts.json()
                     setAlerts(data.map((a: any) => ({
@@ -396,7 +396,7 @@ export default function UserDashboard() {
                                                                         <div className="grid grid-cols-2 gap-2">
                                                                             {saliencyFrames.map((frame, idx) => (
                                                                                 <div key={idx} className="relative aspect-video rounded-lg overflow-hidden border border-border bg-black/5 shadow-sm group">
-                                                                                    <img src={`http://localhost:5000${frame}`} alt={`Saliency Frame ${idx + 1}`} className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105" />
+                                                                                    <img src={`http://localhost:5001${frame}`} alt={`Saliency Frame ${idx + 1}`} className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105" />
                                                                                     <div className="absolute bottom-1 left-1 bg-black/70 text-white px-1.5 py-0.5 text-[10px] rounded backdrop-blur-sm">
                                                                                         Crowd Anomaly Map {idx + 1}
                                                                                     </div>
@@ -405,7 +405,7 @@ export default function UserDashboard() {
                                                                         </div>
                                                                     ) : (
                                                                         <div className="relative aspect-video rounded-lg overflow-hidden border border-border bg-black/5 shadow-sm group">
-                                                                            <img src={`http://localhost:5000${saliencyMap}`} alt="Saliency Map" className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105" />
+                                                                            <img src={`http://localhost:5001${saliencyMap}`} alt="Saliency Map" className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105" />
                                                                             <div className="absolute bottom-2 left-2 bg-black/70 text-white px-2 py-1 text-xs rounded backdrop-blur-sm">
                                                                                 Crowd Anomaly Map
                                                                             </div>
@@ -535,7 +535,7 @@ export default function UserDashboard() {
                                                     </h3>
                                                     <div className="grid md:grid-cols-2 gap-6">
                                                         <div className="relative aspect-video rounded-lg overflow-hidden border border-border bg-black/5 shadow-sm group">
-                                                            <img src={`http://localhost:5000${saliencyMap}`} alt="Saliency Map" className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105" />
+                                                            <img src={`http://localhost:5001${saliencyMap}`} alt="Saliency Map" className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105" />
                                                             <div className="absolute bottom-2 left-2 bg-black/70 text-white px-2 py-1 text-xs rounded backdrop-blur-sm">
                                                                 Density Heatmap
                                                             </div>
@@ -588,7 +588,7 @@ export default function UserDashboard() {
                                             </div>
                                             <div className="relative aspect-[8/3] bg-black rounded overflow-hidden border">
                                                 <img
-                                                    src="http://localhost:5000/api/crowd_analysis_stream"
+                                                    src="http://localhost:5001/api/crowd_analysis_stream"
                                                     alt="Live Analysis Stream"
                                                     className="w-full h-full object-contain"
                                                 />
@@ -613,7 +613,7 @@ export default function UserDashboard() {
                                             </p>
                                             <div className="relative w-full min-h-[400px] bg-slate-100 rounded-lg overflow-hidden border flex items-center justify-center">
                                                 <img
-                                                    src="http://localhost:5000/api/xai/test2"
+                                                    src="http://localhost:5001/api/xai/test2"
                                                     alt="XAI Dashboard"
                                                     className="w-full h-auto object-contain"
                                                     loading="lazy"

@@ -101,7 +101,7 @@ export function ZoneSummary() {
 
             for (const zone of zones) {
                 try {
-                    const response = await fetch(`http://localhost:5000/api/zones/${zone.id}/density`, {
+                    const response = await fetch(`http://localhost:5001/api/zones/${zone.id}/density`, {
                         method: 'POST'
                     })
 

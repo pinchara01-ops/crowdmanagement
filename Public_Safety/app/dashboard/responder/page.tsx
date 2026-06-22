@@ -82,7 +82,7 @@ export default function ResponderDashboard() {
 
   const fetchIncidents = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/anomalies/active')
+      const res = await fetch('http://localhost:5001/api/anomalies/active')
       if (res.ok) {
         const data = await res.json()
         const formatted = data.map((a: any) => ({
@@ -219,7 +219,7 @@ export default function ResponderDashboard() {
         avoid: mockAvoid
       })
 
-      const response = await fetch('http://localhost:5000/api/path/calculate', {
+      const response = await fetch('http://localhost:5001/api/path/calculate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -697,7 +697,7 @@ export default function ResponderDashboard() {
                           <Button onClick={async () => {
                             if (!messageText) return
                             try {
-                              await fetch('http://localhost:5000/api/messages', {
+                              await fetch('http://localhost:5001/api/messages', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({

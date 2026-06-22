@@ -1,0 +1,356 @@
+[
+  {
+    "id": "evt_default",
+    "name": "Summer Music Festival 2025",
+    "location": {
+      "lat": 12.9716,
+      "lng": 77.5946
+    }
+  },
+  {
+    "id": "evt_8th_mile",
+    "name": "8th Mile",
+    "location": {
+      "lat": 12.9237,
+      "lng": 77.4987
+    },
+    "venue": "RV College of Engineering",
+    "capacity": 20000,
+    "current_attendance": 15343,
+    "date": "2025-12-05",
+    "type": "College Fest",
+    "zones": [
+      {
+        "id": "cs_ground",
+        "name": "CS Ground",
+        "capacity": 8000,
+        "current_count": 7200,
+        "density_percentage": 90,
+        "status": "critical",
+        "activity": "Live Concert Performance"
+      },
+      {
+        "id": "bt_quadrangle",
+        "name": "BT Quadrangle",
+        "capacity": 3000,
+        "current_count": 1800,
+        "density_percentage": 60,
+        "status": "medium",
+        "activity": "Food Stalls & Games"
+      },
+      {
+        "id": "food_court",
+        "name": "Food Court",
+        "capacity": 4000,
+        "current_count": 800,
+        "density_percentage": 20,
+        "status": "low",
+        "activity": "Dining Area"
+      },
+      {
+        "id": "mm_foods",
+        "name": "MM Foods",
+        "capacity": 2500,
+        "current_count": 1750,
+        "density_percentage": 70,
+        "status": "high",
+        "activity": "Food Court Area"
+      },
+      {
+        "id": "auditorium",
+        "name": "Auditorium",
+        "capacity": 2500,
+        "current_count": 993,
+        "density_percentage": 40,
+        "status": "low",
+        "activity": "Cultural Events"
+      }
+    ]
+  },
+  {
+    "id": "evt_test_event",
+    "name": "Test Event",
+    "location": {
+      "lat": 12.9716,
+      "lng": 77.5946
+    },
+    "date": "2026-07-01",
+    "type": "music",
+    "description": null,
+    "organizer": "Test Org",
+    "contact": "123",
+    "venue_coordinates": {
+      "Event Center": [
+        12.9716,
+        77.5946
+      ],
+      "North Zone": [
+        12.976104504504505,
+        77.5946
+      ],
+      "South Zone": [
+        12.967095495495496,
+        77.5946
+      ],
+      "East Zone": [
+        12.9716,
+        77.59910450450451
+      ],
+      "West Zone": [
+        12.9716,
+        77.59009549549549
+      ],
+      "North East Sector": [
+        12.974603003003004,
+        77.597603003003
+      ],
+      "North West Sector": [
+        12.974603003003004,
+        77.591596996997
+      ],
+      "South East Sector": [
+        12.968596996996997,
+        77.597603003003
+      ],
+      "South West Sector": [
+        12.968596996996997,
+        77.591596996997
+      ]
+    },
+    "venue_graph": {
+      "Event Center": {
+        "North Zone": 2,
+        "South Zone": 2,
+        "East Zone": 2,
+        "West Zone": 2,
+        "North East Sector": 2,
+        "North West Sector": 2,
+        "South East Sector": 2,
+        "South West Sector": 2
+      },
+      "North Zone": {
+        "Event Center": 2,
+        "South Zone": 2,
+        "East Zone": 2,
+        "West Zone": 2,
+        "North East Sector": 2,
+        "North West Sector": 2,
+        "South East Sector": 2,
+        "South West Sector": 2
+      },
+      "South Zone": {
+        "Event Center": 2,
+        "North Zone": 2,
+        "East Zone": 2,
+        "West Zone": 2,
+        "North East Sector": 2,
+        "North West Sector": 2,
+        "South East Sector": 2,
+        "South West Sector": 2
+      },
+      "East Zone": {
+        "Event Center": 2,
+        "North Zone": 2,
+        "South Zone": 2,
+        "West Zone": 2,
+        "North East Sector": 2,
+        "North West Sector": 2,
+        "South East Sector": 2,
+        "South West Sector": 2
+      },
+      "West Zone": {
+        "Event Center": 2,
+        "North Zone": 2,
+        "South Zone": 2,
+        "East Zone": 2,
+        "North East Sector": 2,
+        "North West Sector": 2,
+        "South East Sector": 2,
+        "South West Sector": 2
+      },
+      "North East Sector": {
+        "Event Center": 2,
+        "North Zone": 2,
+        "South Zone": 2,
+        "East Zone": 2,
+        "West Zone": 2,
+        "North West Sector": 2,
+        "South East Sector": 2,
+        "South West Sector": 2
+      },
+      "North West Sector": {
+        "Event Center": 2,
+        "North Zone": 2,
+        "South Zone": 2,
+        "East Zone": 2,
+        "West Zone": 2,
+        "North East Sector": 2,
+        "South East Sector": 2,
+        "South West Sector": 2
+      },
+      "South East Sector": {
+        "Event Center": 2,
+        "North Zone": 2,
+        "South Zone": 2,
+        "East Zone": 2,
+        "West Zone": 2,
+        "North East Sector": 2,
+        "North West Sector": 2,
+        "South West Sector": 2
+      },
+      "South West Sector": {
+        "Event Center": 2,
+        "North Zone": 2,
+        "South Zone": 2,
+        "East Zone": 2,
+        "West Zone": 2,
+        "North East Sector": 2,
+        "North West Sector": 2,
+        "South East Sector": 2
+      }
+    }
+  },
+  {
+    "id": "evt_8th_mile",
+    "name": "8th mile",
+    "location": {
+      "lat": 12.973276169429417,
+      "lng": 77.58978992683815
+    },
+    "date": "2026-06-09",
+    "type": "music",
+    "description": "asdfg",
+    "organizer": "RVCE",
+    "contact": "7337743545",
+    "venue_coordinates": {
+      "Event Center": [
+        12.973276169429417,
+        77.58978992683815
+      ],
+      "North Zone": [
+        12.981834727987975,
+        77.58978992683815
+      ],
+      "South Zone": [
+        12.96750606772399,
+        77.58991243601575
+      ],
+      "East Zone": [
+        12.973276169429417,
+        77.59834848539671
+      ],
+      "West Zone": [
+        12.973276169429417,
+        77.58123136827959
+      ],
+      "North East Sector": [
+        12.978981875135123,
+        77.59549563254386
+      ],
+      "North West Sector": [
+        12.978981875135123,
+        77.58408422113244
+      ],
+      "South East Sector": [
+        12.96757046372371,
+        77.59549563254386
+      ],
+      "South West Sector": [
+        12.96757046372371,
+        77.58408422113244
+      ]
+    },
+    "venue_graph": {
+      "Event Center": {
+        "North Zone": 2,
+        "South Zone": 2,
+        "East Zone": 2,
+        "West Zone": 2,
+        "North East Sector": 2,
+        "North West Sector": 2,
+        "South East Sector": 2,
+        "South West Sector": 2
+      },
+      "North Zone": {
+        "Event Center": 2,
+        "South Zone": 2,
+        "East Zone": 2,
+        "West Zone": 2,
+        "North East Sector": 2,
+        "North West Sector": 2,
+        "South East Sector": 2,
+        "South West Sector": 2
+      },
+      "South Zone": {
+        "Event Center": 2,
+        "North Zone": 2,
+        "East Zone": 2,
+        "West Zone": 2,
+        "North East Sector": 2,
+        "North West Sector": 2,
+        "South East Sector": 2,
+        "South West Sector": 2
+      },
+      "East Zone": {
+        "Event Center": 2,
+        "North Zone": 2,
+        "South Zone": 2,
+        "West Zone": 2,
+        "North East Sector": 2,
+        "North West Sector": 2,
+        "South East Sector": 2,
+        "South West Sector": 2
+      },
+      "West Zone": {
+        "Event Center": 2,
+        "North Zone": 2,
+        "South Zone": 2,
+        "East Zone": 2,
+        "North East Sector": 2,
+        "North West Sector": 2,
+        "South East Sector": 2,
+        "South West Sector": 2
+      },
+      "North East Sector": {
+        "Event Center": 2,
+        "North Zone": 2,
+        "South Zone": 2,
+        "East Zone": 2,
+        "West Zone": 2,
+        "North West Sector": 2,
+        "South East Sector": 2,
+        "South West Sector": 2
+      },
+      "North West Sector": {
+        "Event Center": 2,
+        "North Zone": 2,
+        "South Zone": 2,
+        "East Zone": 2,
+        "West Zone": 2,
+        "North East Sector": 2,
+        "South East Sector": 2,
+        "South West Sector": 2
+      },
+      "South East Sector": {
+        "Event Center": 2,
+        "North Zone": 2,
+        "South Zone": 2,
+        "East Zone": 2,
+        "West Zone": 2,
+        "North East Sector": 2,
+        "North West Sector": 2,
+        "South West Sector": 2
+      },
+      "South West Sector": {
+        "Event Center": 2,
+        "North Zone": 2,
+        "South Zone": 2,
+        "East Zone": 2,
+        "West Zone": 2,
+        "North East Sector": 2,
+        "North West Sector": 2,
+        "South East Sector": 2
+      }
+    }
+  }
+]

@@ -78,7 +78,12 @@ try:
     if os.path.exists(WEIGHTS_PATH):
         model = CSRNet()
         checkpoint = torch.load(WEIGHTS_PATH, map_location='cpu', weights_only=False)
-        state_dict = checkpoint['state_dict'] if 'state_dict' in checkpoint else checkpoint
+        if 'state_dict' in checkpoint:
+            state_dict = checkpoint['state_dict']
+        elif 'model_state_dict' in checkpoint:
+            state_dict = checkpoint['model_state_dict']
+        else:
+            state_dict = checkpoint
         
         from collections import OrderedDict
         new_state_dict = OrderedDict()
