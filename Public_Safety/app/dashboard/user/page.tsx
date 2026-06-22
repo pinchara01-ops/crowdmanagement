@@ -14,6 +14,7 @@ import { AlertTriangle, MapPin, Users, TrendingUp, Activity, Eye, Camera, Brain,
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from "recharts"
 import { AIChatbot } from "@/components/ai-chatbot"
 import { AIAnomalyDetection } from "@/components/ai-anomaly-detection"
+import { LostAndFound } from "@/components/lost-and-found"
 import { Navigation } from "@/components/navigation"
 
 
@@ -263,10 +264,11 @@ export default function UserDashboard() {
                         </div>
 
                         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-                            <TabsList className="grid w-full grid-cols-3">
+                            <TabsList className="grid w-full grid-cols-4">
                                 <TabsTrigger value="heatmap">Dashboard</TabsTrigger>
                                 <TabsTrigger value="predictions">Predictions</TabsTrigger>
                                 <TabsTrigger value="crowd-analysis">Crowd Analysis</TabsTrigger>
+                                <TabsTrigger value="lost-found">Lost & Found</TabsTrigger>
                             </TabsList>
 
 
@@ -642,6 +644,11 @@ export default function UserDashboard() {
                                 </Card>
                             </TabsContent>
 
+
+                            {/* Lost & Found Tab */}
+                            <TabsContent value="lost-found" className="space-y-6">
+                                <LostAndFound userType="user" />
+                            </TabsContent>
 
                         </Tabs>
 
